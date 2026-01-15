@@ -1,67 +1,150 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Arbeitsstunden Formular</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-    form {
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      font-size: 16px;
-      border: none;
-      margin-top: 20px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Arbeitsdienst eintragen</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; max-width: 700px; }
+input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100%; max-width:400px; }
+#tasksList, #myHours { margin-top: 20px; }
+.task { border:1px solid #ccc; padding:10px; margin-bottom:10px; }
+</style>
 </head>
 <body>
 
-  <h2>Arbeitsstunden Eintragen</h2>
+<h1>Arbeitsdienste Vereinsverwaltung</h1>
 
-  <form action="#" method="post">
-    <label for="datum">Datum:</label>
-    <input type="date" id="datum" name="datum" required>
+<div id="auth">
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="E-Mail">
+  <input type="password" id="password" placeholder="Passwort">
+  <button id="loginBtn">Login</button>
+  <button id="signupBtn">Registrieren</button>
+  <div id="authMessage"></div>
+</div>
 
-    <label for="projekt">Projektname:</label>
-    <input type="text" id="projekt" name="projekt" placeholder="z. B. Kundenprojekt X" required>
+<div id="userArea" style="display:none;">
+  <h2>Willkommen, <span id="userEmail"></span></h2>
+  <button id="logoutBtn">Logout</button>
 
-    <label for="beschreibung">Beschreibung der Tätigkeit:</label>
-    <textarea id="beschreibung" name="beschreibung" rows="4" placeholder="z. B. Fehleranalyse und Bugfixing" required></textarea>
+  <h3>Arbeitsdienst eintragen</h3>
+  <input type="date" id="workDate">
+  <input type="number" step="0.25" id="workHours" placeholder="Stunden">
+  <textarea id="workDesc" placeholder="Beschreibung"></textarea>
+  <button id="saveWorkBtn">Speichern</button>
 
-    <label for="stunden">Anzahl Stunden:</label>
-    <input type="number" id="stunden" name="stunden" min="0" step="0.25" required>
+  <div id="myHours">
+    <h3>Meine Einträge</h3>
+    <ul id="hoursList"></ul>
+  </div>
 
-    <button type="submit">Eintragen</button>
-  </form>
+  <div id="tasksList">
+    <h3>Arbeitsdienste Übersicht</h3>
+    <ul id="taskList"></ul>
+  </div>
+</div>
 
+<script>
+  // Supabase initialisieren
+  const supabaseUrl = "https://DEINPROJEKT.supabase.co"; // <--- DEIN URL
+  const supabaseAnonKey = "DEIN_PUBLIC_ANON_KEY";         // <--- DEIN ANON KEY
+  const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+  const authDiv = document.getElementById("auth");
+  const userArea = document.getElementById("userArea");
+  const userEmailSpan = document.getElementById("userEmail");
+  const authMessage = document.getElementById("authMessage");
+
+  // Login
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if(error) { authMessage.textContent = "Fehler: " + error.message; }
+    else { initUserArea(data.user); }
+  });
+
+  // Registrierung
+  document.getElementById("signupBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if(error) { authMessage.textContent = "Fehler: " + error.message; }
+    else { authMessage.textContent = "Registrierung erfolgreich! Bitte E-Mail bestätigen."; }
+  });
+
+  // Logout
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    authDiv.style.display = "block";
+    userArea.style.display = "none";
+    authMessage.textContent = "";
+  });
+
+  // Benutzerbereich initialisieren
+  function initUserArea(user) {
+    authDiv.style.display = "none";
+    userArea.style.display = "block";
+    userEmailSpan.textContent = user.email;
+    loadMyHours();
+    loadTasks();
+  }
+
+  // Arbeitsdienst eintragen (Stunden speichern)
+  document.getElementById("saveWorkBtn").addEventListener("click", async () => {
+    const date = document.getElementById("workDate").value;
+    const hours = parseFloat(document.getElementById("workHours").value);
+    const desc = document.getElementById("workDesc").value;
+
+    const { error } = await supabase.from("work_hours").insert([{
+      user_id: supabase.auth.getUser().data.user.id,
+      date, hours, description: desc
+    }]);
+
+    if(error) { alert("Fehler: " + error.message); }
+    else { loadMyHours(); }
+  });
+
+  // Eigene Stunden laden
+  async function loadMyHours() {
+    const { data, error } = await supabase.from("work_hours")
+      .select("*")
+      .order("date", { ascending: false });
+    const list = document.getElementById("hoursList");
+    list.innerHTML = "";
+    if(data) {
+      data.forEach(h => {
+        const li = document.createElement("li");
+        li.textContent = `${h.date}: ${h.hours} Stunden - ${h.description}`;
+        list.appendChild(li);
+      });
+    }
+  }
+
+  // Arbeitsdienste laden
+  async function loadTasks() {
+    const { data, error } = await supabase.from("tasks")
+      .select("*")
+      .order("task_date", { ascending: true });
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    if(data) {
+      data.forEach(t => {
+        const li = document.createElement("li");
+        li.className = "task";
+        li.innerHTML = `<strong>${t.title}</strong> (${t.task_date})<br>${t.description}`;
+        list.appendChild(li);
+      });
+    }
+  }
+
+  // Prüfen, ob User schon eingeloggt
+  supabase.auth.onAuthStateChange((event, session) => {
+    if(session && session.user) { initUserArea(session.user); }
+  });
+
+</script>
 </body>
 </html>
+
