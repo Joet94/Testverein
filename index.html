@@ -67,7 +67,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    try{
+    try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       console.log("Suprabase login data:", data);
       console.log("Supabase login error:", error);
@@ -161,6 +161,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
