@@ -143,18 +143,59 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   }
 
   // Arbeitsdienst eintragen (Stunden speichern)
-  document.getElementById("saveWorkBtn").addEventListener("click", async () => {
-    const date = document.getElementById("workDate").value;
-    const hours = parseFloat(document.getElementById("workHours").value);
-    const desc = document.getElementById("workDesc").value;
+  //document.getElementById("saveWorkBtn").addEventListener("click", async () => {
+  //  const date = document.getElementById("workDate").value;
+  //  const hours = parseFloat(document.getElementById("workHours").value);
+  //  const desc = document.getElementById("workDesc").value;
 
+  //  const { error } = await supabase.from("work_hours").insert([{
+  //    user_id: supabase.auth.getUser().data.user.id,
+  //    date, hours, description: desc
+  //  }]);
+
+  //  if(error) { alert("Fehler: " + error.message); }
+  //  else { loadMyHours(); }
+  //});
+
+  //Arbeitsdienst eintragen (Stunden speichern)
+
+  document.getElementById("saveWorkBtn").addEventListener("click", async () => {
+  const date = document.getElementById("workDate").value;
+  const hours = parseFloat(document.getElementById("workHours").value);
+  const desc = document.getElementById("workDesc").value;
+
+  try {
+    // Aktuellen User holen
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError) {
+      alert("Fehler beim Abrufen des Users: " + userError.message);
+      return;
+    }
+
+    if (!userData?.user) {
+      alert("Kein eingeloggter User gefunden. Bitte einloggen.");
+      return;
+    }
+
+    // Arbeitsstunden speichern
     const { error } = await supabase.from("work_hours").insert([{
-      user_id: supabase.auth.getUser().data.user.id,
-      date, hours, description: desc
+      user_id: userData.user.id,
+      date,
+      hours,
+      description: desc
     }]);
 
-    if(error) { alert("Fehler: " + error.message); }
-    else { loadMyHours(); }
+    if (error) {
+      alert("Fehler: " + error.message);
+    } else {
+      loadMyHours(); // Optional: Stunden neu laden
+    }
+
+  } catch (err) {
+    console.error("Unerwarteter Fehler beim Speichern:", err);
+    alert("Unerwarteter Fehler. Siehe Konsole.");
+  }
   });
 
   // Eigene Stunden laden
@@ -198,6 +239,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
