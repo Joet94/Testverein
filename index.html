@@ -65,18 +65,54 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   const authMessage = document.getElementById("authMessage");
 
   // Login
+  //document.getElementById("loginBtn").addEventListener("click", async () => {
+  //  const email = document.getElementById("email").value;
+  //  const password = document.getElementById("password").value;
+  //  try {
+  //    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  //    console.log("Suprabase login data:", data);
+  //    console.log("Supabase login error:", error);
+      
+  //   if(error) { authMessage.textContent = "Fehler: " + error.message;
+  //    } else { initUserArea(data.user);} 
+  //  } catch (err) {
+  //    console.error("Unerwarteter Fehler:", err);
+  //  }
+  //});
+
+  //Login
+
+  // Login
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+
     try {
+      // Login versuchen
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      console.log("Suprabase login data:", data);
+
+      console.log("Supabase login data:", data);
       console.log("Supabase login error:", error);
-      
-      if(error) { authMessage.textContent = "Fehler: " + error.message;
-      } else { initUserArea(data.user);} 
+
+      if (error) {
+        authMessage.textContent = "Fehler: " + error.message;
+        return;
+      }
+
+      // User korrekt aus der Session holen
+      const user = data.user ?? data.session?.user;
+
+      if (!user) {
+        authMessage.textContent = "Login fehlgeschlagen: kein User gefunden.";
+        return;
+      }
+
+      // User-Bereich initialisieren
+      initUserArea(user);
+
     } catch (err) {
       console.error("Unerwarteter Fehler:", err);
+      authMessage.textContent = "Unerwarteter Fehler. Siehe Konsole.";
     }
   });
 
@@ -162,6 +198,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
