@@ -117,13 +117,13 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   });
 
   // Registrierung
-  document.getElementById("signupBtn").addEventListener("click", async () => {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if(error) { authMessage.textContent = "Fehler: " + error.message; }
-    else { authMessage.textContent = "Registrierung erfolgreich! Bitte E-Mail bestätigen."; }
-  });
+  //document.getElementById("signupBtn").addEventListener("click", async () => {
+  //  const email = document.getElementById("email").value;
+  //  const password = document.getElementById("password").value;
+  //  const { data, error } = await supabase.auth.signUp({ email, password });
+  //  if(error) { authMessage.textContent = "Fehler: " + error.message; }
+  //  else { authMessage.textContent = "Registrierung erfolgreich! Bitte E-Mail bestätigen."; }
+  //});
 
   // Logout
   document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -239,6 +239,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
