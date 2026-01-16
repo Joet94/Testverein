@@ -236,36 +236,57 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     if(session && session.user) { initUserArea(session.user); }
   });
 
-  // Anzeige der möglichen Arbeitsdienste
-  const { data: tasks } = await supabase
+
+  // Funktion, um die verfügbaren Arbeitsdienste zu laden
+  async function loadTasks() {
+  const tasksDiv = document.getElementById("tasks");
+  tasksDiv.innerHTML = "Lade Arbeitsdienste...";
+
+  const { data: tasks, error } = await supabase
     .from("work_tasks")
-    .select(`id, title, task_date, max_helpers,work_task_signups(count)`
-  );
+    .select(`
+      id,
+      title,
+      start_time,
+      max_helpers,
+      work_task_signups(count)
+    `)
+    .order("start_time", { ascending: true });
 
+  if (error) {
+    tasksDiv.textContent = error.message;
+    return;
+  }
 
-  // Prüfen ob noch Plätze im Arbeitsdienst frei sind
+  tasksDiv.innerHTML = "";
+
   tasks.forEach(task => {
     const used = task.work_task_signups[0].count;
     const free = task.max_helpers - used;
 
-    if (free > 0) {
-      // Button "Teilnehmen anzeigen"
-    } else {
-      // "Ausgebucht"
-    }
+    tasksDiv.innerHTML += `
+      <div class="task">
+        <h3>${task.title}</h3>
+        <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
+        <p>Helfer: ${used} / ${task.max_helpers}</p>
+        ${
+          free > 0
+            ? `<button onclick="signup('${task.id}')">Eintragen</button>`
+            : `<strong>Ausgebucht</strong>`
+        }
+      </div>
+    `;
   });
+}
 
-//Anmelden für den Arbeitsdienst
-  await supabase.from("work_task_signups").insert({
-    task_id: taskId,
-    user_id: user.id
-  });
+//-----------------------------------------------------------------
 
   
   
 </script>
 </body>
 </html>
+
 
 
 
