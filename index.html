@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Arbeitsdienst eintragen</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; max-width: 700px; }
 input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100%; max-width:400px; }
@@ -41,7 +40,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 
   <div id="tasks">
     <h3>Arbeitsdienste Übersicht</h3>
-    <ul id="task"></ul>
+    <ul id="tasks"></ul>
   </div>
 </div>
 
@@ -215,21 +214,21 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   }
 
   // Arbeitsdienste laden
-  async function loadTasks() {
-    const { data, error } = await supabase.from("tasks")
-      .select("*")
-      .order("task_date", { ascending: true });
-    const list = document.getElementById("taskList");
-    list.innerHTML = "";
-    if(data) {
-      data.forEach(t => {
-        const li = document.createElement("li");
-        li.className = "task";
-        li.innerHTML = `<strong>${t.title}</strong> (${t.task_date})<br>${t.description}`;
-        list.appendChild(li);
-      });
-    }
-  }
+  //async function loadTasks() {
+  //  const { data, error } = await supabase.from("tasks")
+  //    .select("*")
+  //    .order("task_date", { ascending: true });
+  //  const list = document.getElementById("taskList");
+  //  list.innerHTML = "";
+  //  if(data) {
+  //    data.forEach(t => {
+  //      const li = document.createElement("li");
+  //      li.className = "task";
+  //      li.innerHTML = `<strong>${t.title}</strong> (${t.task_date})<br>${t.description}`;
+  //      list.appendChild(li);
+  //    });
+  //  }
+  //}
 
   // Prüfen, ob User schon eingeloggt
   supabase.auth.onAuthStateChange((event, session) => {
@@ -286,6 +285,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
