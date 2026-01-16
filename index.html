@@ -236,9 +236,37 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     if(session && session.user) { initUserArea(session.user); }
   });
 
+  // Anzeige der möglichen Arbeitsdienste
+  const { data: tasks } = await supabase
+    .from("work_tasks")
+    .select(`id, title, task_date, max_helpers,work_task_signups(count)`
+  );
+
+
+  // Prüfen ob noch Plätze im Arbeitsdienst frei sind
+  tasks.forEach(task => {
+    const used = task.work_task_signups[0].count;
+    const free = task.max_helpers - used;
+
+    if (free > 0) {
+      // Button "Teilnehmen anzeigen"
+    } else {
+      // "Ausgebucht"
+    }
+  });
+
+//Anmelden für den Arbeitsdienst
+  await supabase.from("work_task_signups").insert({
+    task_id: taskId,
+    user_id: user.id
+  });
+
+  
+  
 </script>
 </body>
 </html>
+
 
 
 
