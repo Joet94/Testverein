@@ -223,16 +223,34 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       title,
       start_time,
       max_helpers,
-      work_task_signups!inner (
-        id,
-        profiles!inner (
-          display_name
-        )
+      work_task_signups (
+        user_id
       )
     `)
     .order("start_time", { ascending: true });
 
-    
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const userIds = [
+    ...new Set(
+      tasks.flatMap(t =>
+        t.work_task_signups.map(s => s.user_id)
+      )
+    )
+  ];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, name")
+    .in("id", userIds);
+
+  const profileMap = Object.fromEntries(
+    profiles.map(p => [p.id, p.name])
+  );
+
   //const { data: tasks, error } = await supabase
   //  .from("work_tasks")
   //  .select(`
@@ -286,11 +304,41 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 
 //-----------------------------------------------------------------
 
-  
+//tasks.forEach(task => {
+  //const used = task.work_task_signups.length;
+
+  //const helpersList = task.work_task_signups
+    //.map(s => profileMap[s.user_id])
+    //.filter(Boolean)
+    //.map(name => `<li>${name}</li>`)
+    //.join("");
+
+  //tasksDiv.innerHTML += `
+    //<div class="task">
+      //<h3>${task.title}</h3>
+      //<p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
+      //<p>Helfer: ${used} / ${task.max_helpers}</p>
+
+      //${
+        //helpersList
+          //? `<ul>${helpersList}</ul>`
+          //: `<em>Noch keine Anmeldungen</em>`
+      //}
+
+      //${
+        //used < task.max_helpers
+          //? `<button onclick="signup('${task.id}')">Eintragen</button>`
+          //: `<strong>Ausgebucht</strong>`
+      //}
+    //</div>
+  //`;
+//});
+//}
   
 </script>
 </body>
 </html>
+
 
 
 
