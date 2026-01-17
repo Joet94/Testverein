@@ -223,9 +223,26 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       title,
       start_time,
       max_helpers,
-      work_task_signups(count)
+      work_task_signups (
+        id,
+        profiles (
+          full_name
+        )
+      )
     `)
     .order("start_time", { ascending: true });
+
+    
+  //const { data: tasks, error } = await supabase
+  //  .from("work_tasks")
+  //  .select(`
+  //    id,
+  //    title,
+  //    start_time,
+  //    max_helpers,
+  //    work_task_signups(count)
+  //  `)
+  //  .order("start_time", { ascending: true });
 
   if (error) {
     tasksDiv.textContent = error.message;
@@ -238,17 +255,29 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     const used = task.work_task_signups[0].count;
     const free = task.max_helpers - used;
 
-    const div = document.createElement("div");
+    const helpersList = task.work_task_signups
+    .map(s => s.profiles?.full_name)
+    .filter(Boolean)
+    .map(name => `<li>${name}</li>`)
+    .join("");
+
 
     tasksDiv.innerHTML += `
       <div class="task">
-        <h3>${task.title}</h3>
-        <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
-        <p>Helfer: ${used} / ${task.max_helpers}</p>
-        ${
-          free > 0
-            ? `<button onclick="signup('${task.id}')">Eintragen</button>`
-            : `<strong>Ausgebucht</strong>`
+      <h3>${task.title}</h3>
+      <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
+      <p>Helfer: ${used} / ${task.max_helpers}</p>
+
+      ${
+        helpersList
+          ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
+          : `<p><em>Noch keine Anmeldungen</em></p>`
+      }
+
+      ${
+        free > 0
+          ? `<button onclick="signup('${task.id}')">Eintragen</button>`
+          : `<strong>Ausgebucht</strong>`
         }
       </div>
     `;
@@ -262,4 +291,5 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
