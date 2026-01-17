@@ -226,7 +226,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       work_task_signups (
         id,
         profiles (
-          full_name
+          display_name
         )
       )
     `)
@@ -256,7 +256,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     const free = task.max_helpers - used;
 
     const helpersList = task.work_task_signups
-    .map(s => s.profiles?.full_name)
+    .map(s => s.profiles?.display_name)
     .filter(Boolean)
     .map(name => `<li>${name}</li>`)
     .join("");
@@ -291,5 +291,6 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
