@@ -12,7 +12,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.11</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.12</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -298,7 +298,7 @@ window.signup = async function (taskId) {
   const { error } = await supabase
     .from("work_task_signups")
     .insert({
-      work_task_id: taskId,
+      task_id: taskId,
       user_id: user.id
     });
 
@@ -317,6 +317,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
