@@ -12,7 +12,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.10</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.11</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -62,26 +62,10 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   const userArea = document.getElementById("userArea");
   const userEmailSpan = document.getElementById("userEmail");
   const authMessage = document.getElementById("authMessage");
-
+  
+  // ---------------------------------------------------------------------
   // Login
-  //document.getElementById("loginBtn").addEventListener("click", async () => {
-  //  const email = document.getElementById("email").value;
-  //  const password = document.getElementById("password").value;
-  //  try {
-  //    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  //    console.log("Suprabase login data:", data);
-  //    console.log("Supabase login error:", error);
-      
-  //   if(error) { authMessage.textContent = "Fehler: " + error.message;
-  //    } else { initUserArea(data.user);} 
-  //  } catch (err) {
-  //    console.error("Unerwarteter Fehler:", err);
-  //  }
-  //});
-
-  //Login
-
-  // Login
+  //----------------------------------------------------------------------
   document.getElementById("loginBtn").addEventListener("click", async () => {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -114,17 +98,10 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       authMessage.textContent = "Unerwarteter Fehler. Siehe Konsole.";
     }
   });
-
-  // Registrierung
-  //document.getElementById("signupBtn").addEventListener("click", async () => {
-  //  const email = document.getElementById("email").value;
-  //  const password = document.getElementById("password").value;
-  //  const { data, error } = await supabase.auth.signUp({ email, password });
-  //  if(error) { authMessage.textContent = "Fehler: " + error.message; }
-  //  else { authMessage.textContent = "Registrierung erfolgreich! Bitte E-Mail bestätigen."; }
-  //});
-
+  
+  //-------------------------------------------------------------------------
   // Logout
+  //-------------------------------------------------------------------------
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
     authDiv.style.display = "block";
@@ -301,11 +278,46 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   });
 }
 
+//-----------------------------------------------------------------------
+// In einem Arbeitsdienst eintragen 
+//-----------------------------------------------------------------------
+
+window.signup = async function (taskId) {
+  console.log("Signup für Task:", taskId);
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    alert("Bitte zuerst anmelden.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("work_task_signups")
+    .insert({
+      work_task_id: taskId,
+      user_id: user.id
+    });
+
+  if (error) {
+    alert(error.message);
+    console.error(error);
+    return;
+  }
+
+  // Neu laden, damit die Anmeldung sichtbar wird
+  loadTasks();
+};
+  
   
   
 </script>
 </body>
 </html>
+
 
 
 
