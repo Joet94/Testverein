@@ -12,7 +12,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.9</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.10</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -250,18 +250,17 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     const { data: profiles } = await supabase
       .from("profiles")
       .select("id, name")
-      .in("id", userIds);
-  }  
+      .in("id", userIds); 
 
-  if (profilesError) {
-    console.error(profilesError);
-    return;
+    if (profilesError) {
+      console.error(profilesError);
+      return;
+    }
+
+    const profileMap = Object.fromEntries(
+      profiles.map(p => [p.id, p.name])
+    );
   }
-
-  const profileMap = Object.fromEntries(
-    profiles.map(p => [p.id, p.name])
-  );
-
   if (error) {
     tasksDiv.textContent = error.message;
     return;
@@ -307,6 +306,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
