@@ -269,7 +269,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   tasksDiv.innerHTML = "";
 
   tasks.forEach(task => {
-    const used = task.work_task_signups[0].count;
+    const used = task.work_task_signups.length;
     const free = task.max_helpers - used;
 
     const helpersList = task.work_task_signups
@@ -306,6 +306,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
