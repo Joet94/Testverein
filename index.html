@@ -216,6 +216,8 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   const tasksDiv = document.getElementById("tasks");
   tasksDiv.innerHTML = "Lade Arbeitsdienste...";
 
+  console.log("loadTasks gestartet");
+    
   const { data: tasks, error } = await supabase
     .from("work_tasks")
     .select(`
@@ -296,6 +298,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </script>
 </body>
 </html>
+
 
 
 
