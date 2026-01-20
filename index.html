@@ -12,7 +12,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.14</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.15</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -235,13 +235,13 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       return;
     }
     
-    profileMap[profiles[0].id] = profiles[0].name;
+    profileMap[profiles[0].id] = profiles[0].display_name;
   }
   // Mehrere User sind schon angemeldet
   if (userIds.length > 1) {   
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, name")
+      .select("id, display_name")
       .in("id", userIds); 
 
     if (profilesError) {
@@ -249,8 +249,8 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       return;
     }
 
-    const profileMap = Object.fromEntries(
-      profiles.map(p => [p.id, p.name])
+    profileMap = Object.fromEntries(
+      profiles.map(p => [p.id, p.diaplay_name])
     );
   }
   if (error) {
@@ -265,7 +265,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     const free = task.max_helpers - used;
 
     const helpersList = task.work_task_signups
-    .map(s => s.profiles?.display_name)
+    .map(s => profileMap[s.user_id])
     .filter(Boolean)
     .map(name => `<li>${name}</li>`)
     .join("");
@@ -332,6 +332,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
