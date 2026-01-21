@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.23</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.24</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -243,71 +243,67 @@
   //-----------------------------------------------------------------------------------
   // Funktion, um die verfügbaren Arbeitsdienste zu laden
   //-----------------------------------------------------------------------------------
-let allTasks = [];
+  async function loadTasks() {
+    console.log("loadTasks gestartet");
 
-async function loadTasks() {
-  console.log("loadTasks gestartet");
+    const { data: tasks, error } = await supabase
+      .from("work_tasks")
+      .select(`
+        id,
+        title,
+        start_time,
+        max_helpers,
+        work_task_signups ( user_id )
+      `)
+      .order("start_time", { ascending: true });
 
-  const { data: tasks, error } = await supabase
-    .from("work_tasks")
-    .select(`
-      id,
-      title,
-      start_time,
-      max_helpers,
-      work_task_signups ( user_id )
-    `)
-    .order("start_time", { ascending: true });
+    if (error) {
+      console.error(error);
+      return;
+    }
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    allTasks = tasks;
 
-  allTasks = tasks;
-
-  const userIds = [
-    ...new Set(
-      tasks.flatMap(t =>
-        t.work_task_signups.map(s => s.user_id)
+    const userIds = [
+      ...new Set(
+        tasks.flatMap(t =>
+          t.work_task_signups.map(s => s.user_id)
+        )
       )
-    )
-  ];
+    ];
 
-  profileMap = {};
+    if (userIds.length === 1) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .eq("id", userIds[0]);
 
-  if (userIds.length === 1) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .eq("id", userIds[0]);
+      if (profilesError) {
+        console.error(profilesError);
+        return;
+      }
 
-    if (profilesError) {
-      console.error(profilesError);
-      return;
+      profileMap[profiles[0].id] = profiles[0].display_name;
     }
 
-    profileMap[profiles[0].id] = profiles[0].display_name;
-  }
+    if (userIds.length > 1) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", userIds);
 
-  if (userIds.length > 1) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .in("id", userIds);
+      if (profilesError) {
+        console.error(profilesError);
+        return;
+      }
 
-    if (profilesError) {
-      console.error(profilesError);
-      return;
+      profileMap = Object.fromEntries(
+        profiles.map(p => [p.id, p.display_name])
+      );
     }
-
-    profileMap = Object.fromEntries(
-      profiles.map(p => [p.id, p.display_name])
-    );
-  }
   
-  renderDayButtons(tasks);
-}
+    renderDayButtons(tasks);
+  }
 
 
 //-----------------------------------------------------------------------
@@ -416,6 +412,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
