@@ -1,18 +1,69 @@
-<!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Arbeitsdienst eintragen</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; max-width: 700px; }
-input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100%; max-width:400px; }
-#tasksList, #myHours { margin-top: 20px; }
-.task { border:1px solid #ccc; padding:10px; margin-bottom:10px; }
-</style>
+  <meta charset="UTF-8">
+  <title>Arbeitsdienst eintragen</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 700px;
+    }
+
+    input, textarea, button {
+      display: block;
+      margin: 10px 0;
+      padding: 5px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* Arbeitsdienste */
+    #tasksList, #myHours {
+      margin-top: 20px;
+    }
+
+    .task {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+
+    /* 🔹 Tagesfilter */
+    #day-filter {
+      margin: 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    #day-filter button {
+      width: auto;
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      background: #f7f7f7;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    #day-filter button:hover {
+      background: #eaeaea;
+    }
+
+    #day-filter button.active {
+      background-color: #2c7be5;
+      color: white;
+      border-color: #2c7be5;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.20</h1>
+
+<h1>Arbeitsdienste Vereinsverwaltung - 0.21</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -314,6 +365,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
