@@ -42,6 +42,12 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     <h3>Arbeitsdienste Übersicht</h3>
     <ul id="tasks"></ul>
   </div>
+
+  <div id="day-filter">
+  </div>
+
+  <div id="tasks">
+  </div>
 </div>
 
 <script type="module">
@@ -121,7 +127,6 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   //---------------------------------------------------------------------------
   //Arbeitsdienst eintragen (Stunden speichern)
   //---------------------------------------------------------------------------
-  
   document.getElementById("saveWorkBtn").addEventListener("click", async () => {
   const date = document.getElementById("workDate").value;
   const hours = parseFloat(document.getElementById("workHours").value);
@@ -189,12 +194,115 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   //-----------------------------------------------------------------------------------
   // Funktion, um die verfügbaren Arbeitsdienste zu laden
   //-----------------------------------------------------------------------------------
-  async function loadTasks() {
-  const tasksDiv = document.getElementById("tasks");
-  tasksDiv.innerHTML = "Lade Arbeitsdienste...";
+//  async function loadTasks() {
+//  const tasksDiv = document.getElementById("tasks");
+//  tasksDiv.innerHTML = "Lade Arbeitsdienste...";
 
-  console.log("loadTasks gestartet");
+//  console.log("loadTasks gestartet");
     
+//  const { data: tasks, error } = await supabase
+//    .from("work_tasks")
+//    .select(`
+//      id,
+//      title,
+//      start_time,
+//      max_helpers,
+//      work_task_signups (
+//        user_id
+//      )
+//    `)
+//    .order("start_time", { ascending: true });
+
+//  if (error) {
+//    console.error(error);
+//    return;
+//  }
+
+//  const userIds = [
+//    ...new Set(
+//      tasks.flatMap(t =>
+//        t.work_task_signups.map(s => s.user_id)
+//      )
+//    )
+//  ];
+
+//  let profileMap = {};
+    
+  // Nur ein User ist bisher angemeldet  
+//  if (userIds.length === 1) {
+//    const { data: profiles, error: profilesError } = await supabase
+//      .from("profiles")
+//      .select("id, display_name")
+//      .eq("id", userIds[0]);
+
+//    if (profilesError) {
+//      console.error(profilesError);
+//      return;
+//    }
+    
+//    profileMap[profiles[0].id] = profiles[0].display_name;
+//  }
+  // Mehrere User sind schon angemeldet
+//  if (userIds.length > 1) {   
+//    const { data: profiles } = await supabase
+//      .from("profiles")
+//      .select("id, display_name")
+//      .in("id", userIds); 
+
+//    if (profilesError) {
+//      console.error(profilesError);
+//      return;
+//    }
+
+//    profileMap = Object.fromEntries(
+//      profiles.map(p => [p.id, p.diaplay_name])
+//    );
+//  }
+//  if (error) {
+//    tasksDiv.textContent = error.message;
+//    return;
+//  }
+
+//  tasksDiv.innerHTML = "";
+
+//  tasks.forEach(task => {
+//    const used = task.work_task_signups.length;
+//    const free = task.max_helpers - used;
+
+//    const helpersList = task.work_task_signups
+//    .map(s => profileMap[s.user_id])
+//    .filter(Boolean)
+//    .map(name => `<li>${name}</li>`)
+//    .join("");
+
+
+//    tasksDiv.innerHTML += `
+//      <div class="task">
+//      <h3>${task.title}</h3>
+//      <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
+//      <p>Helfer: ${used} / ${task.max_helpers}</p>
+
+//      ${
+//        helpersList
+//          ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
+//          : `<p><em>Noch keine Anmeldungen</em></p>`
+//      }
+
+//      ${
+//        free > 0
+//          ? `<button onclick="signup('${task.id}')">Eintragen</button>`
+//          : `<strong>Ausgebucht</strong>`
+//        }
+//      </div>
+//    `;
+//  });
+//}
+
+let allTasks = [];
+
+async function loadTasks() {
+  console.log("loadTasks gestartet");
+
   const { data: tasks, error } = await supabase
     .from("work_tasks")
     .select(`
@@ -202,9 +310,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       title,
       start_time,
       max_helpers,
-      work_task_signups (
-        user_id
-      )
+      work_task_signups ( user_id )
     `)
     .order("start_time", { ascending: true });
 
@@ -213,90 +319,15 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     return;
   }
 
-  const userIds = [
-    ...new Set(
-      tasks.flatMap(t =>
-        t.work_task_signups.map(s => s.user_id)
-      )
-    )
-  ];
+  allTasks = tasks;
 
-  let profileMap = {};
-    
-  // Nur ein User ist bisher angemeldet  
-  if (userIds.length === 1) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .eq("id", userIds[0]);
-
-    if (profilesError) {
-      console.error(profilesError);
-      return;
-    }
-    
-    profileMap[profiles[0].id] = profiles[0].display_name;
-  }
-  // Mehrere User sind schon angemeldet
-  if (userIds.length > 1) {   
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .in("id", userIds); 
-
-    if (profilesError) {
-      console.error(profilesError);
-      return;
-    }
-
-    profileMap = Object.fromEntries(
-      profiles.map(p => [p.id, p.diaplay_name])
-    );
-  }
-  if (error) {
-    tasksDiv.textContent = error.message;
-    return;
-  }
-
-  tasksDiv.innerHTML = "";
-
-  tasks.forEach(task => {
-    const used = task.work_task_signups.length;
-    const free = task.max_helpers - used;
-
-    const helpersList = task.work_task_signups
-    .map(s => profileMap[s.user_id])
-    .filter(Boolean)
-    .map(name => `<li>${name}</li>`)
-    .join("");
-
-
-    tasksDiv.innerHTML += `
-      <div class="task">
-      <h3>${task.title}</h3>
-      <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
-      <p>Helfer: ${used} / ${task.max_helpers}</p>
-
-      ${
-        helpersList
-          ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
-          : `<p><em>Noch keine Anmeldungen</em></p>`
-      }
-
-      ${
-        free > 0
-          ? `<button onclick="signup('${task.id}')">Eintragen</button>`
-          : `<strong>Ausgebucht</strong>`
-        }
-      </div>
-    `;
-  });
+  renderDayButtons(tasks);
 }
 
+  
 //-----------------------------------------------------------------------
 // In einem Arbeitsdienst eintragen 
 //-----------------------------------------------------------------------
-
 window.signup = async function (taskId) {
   console.log("Signup für Task:", taskId);
 
@@ -332,22 +363,3 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
