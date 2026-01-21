@@ -12,7 +12,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 </head>
 <body>
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.17</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.18</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -194,12 +194,11 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
   //-----------------------------------------------------------------------------------
   // Funktion, um die verfügbaren Arbeitsdienste zu laden
   //-----------------------------------------------------------------------------------
-  async function loadTasks() {
-  const tasksDiv = document.getElementById("tasks");
-  tasksDiv.innerHTML = "Lade Arbeitsdienste...";
+let allTasks = [];
 
+async function loadTasks() {
   console.log("loadTasks gestartet");
-    
+
   const { data: tasks, error } = await supabase
     .from("work_tasks")
     .select(`
@@ -207,9 +206,7 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
       title,
       start_time,
       max_helpers,
-      work_task_signups (
-        user_id
-      )
+      work_task_signups ( user_id )
     `)
     .order("start_time", { ascending: true });
 
@@ -220,87 +217,67 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
 
   allTasks = tasks;
 
-  //renderDayButtons(tasks);
-    
-  const userIds = [
+  renderDayButtons(tasks);
+}
+
+
+//-----------------------------------------------------------------------
+
+function renderDayButtons(tasks) {
+  const dayDiv = document.getElementById("day-filter");
+  dayDiv.innerHTML = "";
+
+  const days = [
     ...new Set(
-      tasks.flatMap(t =>
-        t.work_task_signups.map(s => s.user_id)
+      tasks.map(t =>
+        new Date(t.start_time).toISOString().split("T")[0]
       )
     )
   ];
 
-  let profileMap = {};
-    
-  // Nur ein User ist bisher angemeldet  
-  if (userIds.length === 1) {
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .eq("id", userIds[0]);
+  days.forEach(day => {
+    const btn = document.createElement("button");
+    btn.textContent = new Date(day).toLocaleDateString("de-DE", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit"
+    });
 
-    if (profilesError) {
-      console.error(profilesError);
-      return;
-    }
-    
-    profileMap[profiles[0].id] = profiles[0].display_name;
-  }
-  // Mehrere User sind schon angemeldet
-  if (userIds.length > 1) {   
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, display_name")
-      .in("id", userIds); 
+    btn.onclick = () => renderTasksForDay(day);
+    dayDiv.appendChild(btn);
+  });
+}
 
-    if (profilesError) {
-      console.error(profilesError);
-      return;
-    }
+//-----------------------------------------------------------------------
 
-    profileMap = Object.fromEntries(
-      profiles.map(p => [p.id, p.diaplay_name])
-    );
-  }
-  if (error) {
-    tasksDiv.textContent = error.message;
-    return;
-  }
-
+function renderTasksForDay(day) {
+  const tasksDiv = document.getElementById("tasks");
   tasksDiv.innerHTML = "";
 
-  tasks.forEach(task => {
+  const tasksForDay = allTasks.filter(t =>
+    t.start_time.startsWith(day)
+  );
+
+  tasksForDay.forEach(task => {
     const used = task.work_task_signups.length;
     const free = task.max_helpers - used;
 
-    const helpersList = task.work_task_signups
-    .map(s => profileMap[s.user_id])
-    .filter(Boolean)
-    .map(name => `<li>${name}</li>`)
-    .join("");
-
-
     tasksDiv.innerHTML += `
       <div class="task">
-      <h3>${task.title}</h3>
-      <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
-      <p>Helfer: ${used} / ${task.max_helpers}</p>
+        <h3>${task.title}</h3>
+        <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
+        <p>Helfer: ${used} / ${task.max_helpers}</p>
 
-      ${
-        helpersList
-          ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
-          : `<p><em>Noch keine Anmeldungen</em></p>`
-      }
-
-      ${
-        free > 0
-          ? `<button onclick="signup('${task.id}')">Eintragen</button>`
-          : `<strong>Ausgebucht</strong>`
+        ${
+          free > 0
+            ? `<button onclick="signup('${task.id}')">Eintragen</button>`
+            : `<strong>Ausgebucht</strong>`
         }
       </div>
     `;
   });
 }
+
   
 //-----------------------------------------------------------------------
 // In einem Arbeitsdienst eintragen 
@@ -340,6 +317,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
