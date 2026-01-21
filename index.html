@@ -218,6 +218,10 @@ input, textarea, button { display:block; margin: 10px 0; padding:5px; width: 100
     return;
   }
 
+  allTasks = tasks;
+
+  renderDayButtons(tasks);
+    
   const userIds = [
     ...new Set(
       tasks.flatMap(t =>
@@ -336,4 +340,5 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
