@@ -357,11 +357,22 @@ function renderTasksForDay(day) {
     const used = task.work_task_signups.length;
     const free = task.max_helpers - used;
 
+    const helpersList = task.work_task_signups
+      .map(s => profileMap[s.user_id] || "Unbekannter Nutzer")
+      .map(name => `<li>${name}</li>`)
+      .join("");
+    
     tasksDiv.innerHTML += `
       <div class="task">
         <h3>${task.title}</h3>
         <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
         <p>Helfer: ${used} / ${task.max_helpers}</p>
+
+        ${
+          helpersList
+            ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
+            : `<p><em>Noch keine Anmeldungen</em></p>`
+        }
 
         ${
           free > 0
@@ -412,6 +423,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
