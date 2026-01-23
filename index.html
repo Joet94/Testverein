@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.28</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.29</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -100,6 +100,7 @@
 
   let allTasks = [];
   let profileMap = {};
+  let currentUserId = null;
   
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
   const supabaseUrl = 'https://hteeyyfsaotcavvtvizt.supabase.co'
@@ -166,6 +167,7 @@
 
   // Benutzerbereich initialisieren
   function initUserArea(user) {
+    currentUserId = user.id;
     authDiv.style.display = "none";
     userArea.style.display = "block";
     userEmailSpan.textContent = user.email;
@@ -354,6 +356,11 @@ function renderTasksForDay(day) {
   );
 
   tasksForDay.forEach(task => {
+    
+    const alreadySignedUp = task.work_task_signups.some(
+      s => s.user_id === currentUserId
+      );
+    
     const used = task.work_task_signups.reduce(
       (sum, s) => sum + 1 + (s.helpers || 0),
       0
@@ -381,7 +388,9 @@ function renderTasksForDay(day) {
         }
 
         ${
-          free > 0
+          alreadySignedUp
+          ? `<strong>Du bist bereits eingetragen</strong>`
+          : free > 0
             ? `
               <label>
               Zusätzliche Helfer:
@@ -454,6 +463,7 @@ window.signup = async function (taskId, free) {
 </script>
 </body>
 </html>
+
 
 
 
