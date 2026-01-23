@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.26</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.27</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -408,8 +408,18 @@ function renderTasksForDay(day) {
 //-----------------------------------------------------------------------
 // In einem Arbeitsdienst eintragen 
 //-----------------------------------------------------------------------
-window.signup = async function (taskId) {
+window.signup = async function (taskId, free) {
+
+  const helpersInput = document.getElementById(`helpers-${taskId}`);
+  const helpers = helpersInput ? parseInt(helpersInput.value || 0) : 0;
+  
   console.log("Signup für Task:", taskId);
+
+  // nachschauen, ob noch genügend freie Plätze vorhanden sind
+  if (helpers + 1 > free) {
+    alert("Nicht genügend freie Plätze vorhanden.");
+    return;
+  }
 
   const {
     data: { user },
@@ -425,7 +435,8 @@ window.signup = async function (taskId) {
     .from("work_task_signups")
     .insert({
       task_id: taskId,
-      user_id: user.id
+      user_id: user.id,
+      helpers: helpers
     });
 
   if (error) {
@@ -443,6 +454,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
