@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.25</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.26</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -354,13 +354,19 @@ function renderTasksForDay(day) {
   );
 
   tasksForDay.forEach(task => {
-    const used = task.work_task_signups.length;
+    const used = task.work_task_signups.reduce(
+      (sum, s) => sum + 1 + (s.helpers || 0),
+      0
+      );
+    
     const free = task.max_helpers - used;
 
-    const helpersList = task.work_task_signups
-      .map(s => profileMap[s.user_id] || "Unbekannter Nutzer")
-      .map(name => `<li>${name}</li>`)
-      .join("");
+    const helpersList = task.work_task_signups.map(s => {
+        const name = profileMap[s.user_id] || "Unbekannter Nutzer";
+        const extra = s.helpers > 0 ? ` (+${s.helpers})` : "";
+        return `<li>${name}${extra}</li>`;
+        })
+        .join("");
     
     tasksDiv.innerHTML += `
       <div class="task">
@@ -376,13 +382,27 @@ function renderTasksForDay(day) {
 
         ${
           free > 0
-            ? `<button onclick="signup('${task.id}')">Eintragen</button>`
-            : `<strong>Ausgebucht</strong>`
-        }
+            ? `
+              <label>
+              Zusätzliche Helfer:
+              <input
+              type="number"
+              min="0"
+              max="${free - 1}"
+              value="0"
+              id="helpers-${task.id}"
+              >
+              </label>
+              <button onclick="signup('${task.id}', ${free})">
+              Eintragen
+              </button>
+              `
+              : `<strong>Ausgebucht</strong>`
+              }
       </div>
-    `;
-  });
-}
+        `;
+      });
+  }
 
   
 //-----------------------------------------------------------------------
@@ -423,6 +443,7 @@ window.signup = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
