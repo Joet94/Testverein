@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.27</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.28</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -253,7 +253,7 @@
         title,
         start_time,
         max_helpers,
-        work_task_signups ( user_id )
+        work_task_signups ( user_id, helpers )
       `)
       .order("start_time", { ascending: true });
 
@@ -454,6 +454,7 @@ window.signup = async function (taskId, free) {
 </script>
 </body>
 </html>
+
 
 
 
