@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.30</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.31</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -254,8 +254,10 @@
         id,
         title,
         start_time,
+        end_time,
         max_helpers,
         visible,
+        open,
         work_task_signups ( user_id, helpers )
       `)
       .eq("visible",true)
@@ -308,8 +310,23 @@
   
     renderDayButtons(tasks);
   }
+  
+  //--------------------------------------------------------------------
+  // Gruppierung der Arbeitsdienste nach den Aufgaben
+  //--------------------------------------------------------------------
+  function groupTasksByTitle(tasks) {
+    return tasks.reduce((groups, task) => {
+      const title = task.title;
 
+      if (!groups[title]) {
+        groups[title] = [];
+      }
 
+      groups[title].push(task);
+      return groups;
+    }, {});
+  }
+  
 //-----------------------------------------------------------------------
 
 function renderDayButtons(tasks) {
@@ -348,73 +365,101 @@ function renderDayButtons(tasks) {
 }
 
 //-----------------------------------------------------------------------
+// Arbeitsdienste pro Tag anzeigen
+//-----------------------------------------------------------------------
 
 function renderTasksForDay(day) {
   const tasksDiv = document.getElementById("tasks");
   tasksDiv.innerHTML = "";
 
+  // 1. Aufgaben für den Tag filtern
   const tasksForDay = allTasks.filter(t =>
     t.start_time.startsWith(day)
   );
 
-  tasksForDay.forEach(task => {
-    
-    const alreadySignedUp = task.work_task_signups.some(
-      s => s.user_id === currentUserId
-      );
-    
-    const used = task.work_task_signups.reduce(
-      (sum, s) => sum + 1 + (s.helpers || 0),
-      0
-      );
-    
-    const free = task.max_helpers - used;
-
-    const helpersList = task.work_task_signups.map(s => {
-        const name = profileMap[s.user_id] || "Unbekannter Nutzer";
-        const extra = s.helpers > 0 ? ` (+${s.helpers})` : "";
-        return `<li>${name}${extra}</li>`;
-        })
-        .join("");
-    
-    tasksDiv.innerHTML += `
-      <div class="task">
-        <h3>${task.title}</h3>
-        <p>${new Date(task.start_time).toLocaleString("de-DE")}</p>
-        <p>Helfer: ${used} / ${task.max_helpers}</p>
-
-        ${
-          helpersList
-            ? `<p><strong>Angemeldet:</strong></p><ul>${helpersList}</ul>`
-            : `<p><em>Noch keine Anmeldungen</em></p>`
-        }
-
-        ${
-          alreadySignedUp
-          ? `<strong>Du bist bereits eingetragen</strong>`
-          : free > 0
-            ? `
-              <label>
-              Zusätzliche Helfer:
-              <input
-              type="number"
-              min="0"
-              max="${free - 1}"
-              value="0"
-              id="helpers-${task.id}"
-              >
-              </label>
-              <button onclick="signup('${task.id}', ${free})">
-              Eintragen
-              </button>
-              `
-              : `<strong>Ausgebucht</strong>`
-              }
-      </div>
-        `;
-      });
+  if (tasksForDay.length === 0) {
+    tasksDiv.innerHTML = "<p>Keine Arbeitsdienste an diesem Tag.</p>";
+    return;
   }
 
+  // 2. Nach Titel gruppieren
+  const tasksByTitle = groupTasksByTitle(tasksForDay);
+
+  // 3. Pro Titel einen Abschnitt erzeugen
+  Object.entries(tasksByTitle).forEach(([title, tasks]) => {
+    const section = document.createElement("div");
+    section.className = "task-group";
+
+    section.innerHTML = `<h4>${title}</h4>`;
+
+    tasks.forEach(task => {
+      const used = task.work_task_signups.reduce(
+        (sum, s) => sum + 1 + (s.helpers || 0),
+        0
+      );
+
+      const free = task.max_helpers - used;
+
+      const alreadySignedUp = task.work_task_signups.some(
+        s => s.user_id === currentUserId
+      );
+
+      const helpersList = task.work_task_signups
+        .map(s => {
+          const name = profileMap[s.user_id] || "Mitglied";
+          const extra = s.helpers > 0 ? ` (+${s.helpers})` : "";
+          return `<li>${name}${extra}</li>`;
+        })
+        .join("");
+
+      section.innerHTML += `
+        <div class="task">
+          <p>
+            <strong>
+              ${new Date(task.start_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+              –
+              ${new Date(task.end_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+            </strong>
+          </p>
+
+          <p>Belegte Plätze: ${used} / ${task.max_helpers}</p>
+
+          ${
+            helpersList
+              ? `<ul>${helpersList}</ul>`
+              : `<p><em>Noch keine Anmeldungen</em></p>`
+          }
+
+          ${
+            !task.open
+              ? `<strong>Geschlossen</strong>`
+              : alreadySignedUp
+                ? `<strong>Du bist bereits eingetragen</strong>`
+                : free > 0
+                  ? `
+                    <label>
+                      Zusätzliche Helfer:
+                      <input
+                        type="number"
+                        min="0"
+                        max="${free - 1}"
+                        value="0"
+                        id="helpers-${task.id}"
+                      >
+                    </label>
+                    <button onclick="signup('${task.id}', ${free})">
+                      Eintragen
+                    </button>
+                  `
+                  : `<strong>Ausgebucht</strong>`
+          }
+        </div>
+      `;
+    });
+
+    tasksDiv.appendChild(section);
+  });
+}
   
 //-----------------------------------------------------------------------
 // In einem Arbeitsdienst eintragen 
@@ -465,6 +510,7 @@ window.signup = async function (taskId, free) {
 </script>
 </body>
 </html>
+
 
 
 
