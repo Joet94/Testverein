@@ -128,7 +128,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.41</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.42</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -595,13 +595,9 @@ function renderTasksForTitle(day, title) {
 // In einem Arbeitsdienst eintragen 
 //-----------------------------------------------------------------------
 window.signup = async function (taskId, free) {
-
   const helpersInput = document.getElementById(`helpers-${taskId}`);
   const helpers = helpersInput ? parseInt(helpersInput.value || 0) : 0;
-  
-  console.log("Signup für Task:", taskId);
 
-  // nachschauen, ob noch genügend freie Plätze vorhanden sind
   if (helpers + 1 > free) {
     alert("Nicht genügend freie Plätze vorhanden.");
     return;
@@ -619,11 +615,7 @@ window.signup = async function (taskId, free) {
 
   const { error } = await supabase
     .from("work_task_signups")
-    .insert({
-      task_id: taskId,
-      user_id: user.id,
-      helpers: helpers
-    });
+    .insert({ task_id: taskId, user_id: user.id, helpers });
 
   if (error) {
     alert(error.message);
@@ -631,8 +623,32 @@ window.signup = async function (taskId, free) {
     return;
   }
 
-  // Neu laden, damit die Anmeldung sichtbar wird
-  loadTasks();
+  // --- Neu: frische Daten laden, dann aktuelle Ansicht rendern ---
+  const { data: tasks, error: tasksError } = await supabase
+    .from("work_tasks")
+    .select(`
+      id,
+      title,
+      start_time,
+      end_time,
+      max_helpers,
+      visible,
+      open,
+      work_task_signups ( user_id, helpers )
+    `)
+    .eq("visible", true)
+    .order("start_time", { ascending: true });
+
+  if (tasksError) {
+    console.error(tasksError);
+    return;
+  }
+
+  allTasks = tasks;
+
+  if (currentDay && currentTitle) {
+    renderTasksForTitle(currentDay, currentTitle);
+  }
 };
 
 //-----------------------------------------------------------------
@@ -677,7 +693,6 @@ window.withdraw = async function (taskId) {
 // Helferanzahl für bestehenden Eintrag aktualisieren (mit Prüfung)
 //-----------------------------------------------------------------
 window.updateHelpers = async function (taskId, maxHelpers) {
-
   const input = document.getElementById(`edit-helpers-${taskId}`);
   if (!input) return;
 
@@ -692,7 +707,6 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 
   const oldHelpers = signup?.helpers || 0;
 
-  // aktuell belegte Plätze OHNE eigene Helfer
   const usedWithoutMe = task.work_task_signups.reduce(
     (sum, s) => sum + 1 + (s.helpers || 0),
     0
@@ -702,15 +716,11 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 
   if (newTotalUsed > maxHelpers) {
     alert("Nicht genügend freie Plätze für diese Anzahl an Helfern.");
-    input.value = oldHelpers; // zurücksetzen
+    input.value = oldHelpers;
     return;
   }
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser();
-
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     alert("Bitte zuerst anmelden.");
     return;
@@ -728,8 +738,29 @@ window.updateHelpers = async function (taskId, maxHelpers) {
     return;
   }
 
-  //loadTasks();
-  // UI direkt aktualisieren
+  // --- Neu: frische Daten laden, dann aktuelle Ansicht rendern ---
+  const { data: tasks, error: tasksError } = await supabase
+    .from("work_tasks")
+    .select(`
+      id,
+      title,
+      start_time,
+      end_time,
+      max_helpers,
+      visible,
+      open,
+      work_task_signups ( user_id, helpers )
+    `)
+    .eq("visible", true)
+    .order("start_time", { ascending: true });
+
+  if (tasksError) {
+    console.error(tasksError);
+    return;
+  }
+
+  allTasks = tasks;
+
   if (currentDay && currentTitle) {
     renderTasksForTitle(currentDay, currentTitle);
   }
@@ -739,6 +770,7 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
 
 
 
