@@ -93,7 +93,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.34</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.35</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -504,8 +504,27 @@ function renderTasksForTitle(day, title) {
         ${
           !task.open
             ? `<strong>Geschlossen</strong>`
-            : alreadySignedUp
-              ? `<button class="danger" onclick="withdraw('${task.id}')">Austragen</button>`
+            alreadySignedUp
+              ? `
+                <label>
+                  Zusätzliche Helfer:
+                  <input
+                    type="number"
+                    min="0"
+                    max="${free + (task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0)}"
+                    value="${task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0}"
+                    id="edit-helpers-${task.id}"
+                  >
+                </label>
+
+                <button onclick="updateHelpers('${task.id}')">
+                  Helfer aktualisieren
+                </button>
+
+                <button class="danger" onclick="withdraw('${task.id}')">
+                  Austragen
+                </button>
+              `
               : free > 0
                 ? `
                   <label>
@@ -613,6 +632,7 @@ window.withdraw = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
