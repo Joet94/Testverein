@@ -128,7 +128,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.42</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.43</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -682,8 +682,30 @@ window.withdraw = async function (taskId) {
     return;
   }
 
-  //loadTasks(); // UI aktualisieren
-  // UI direkt aktualisieren
+  // --- Neu: frische Daten aus Supabase laden ---
+  const { data: tasks, error: tasksError } = await supabase
+    .from("work_tasks")
+    .select(`
+      id,
+      title,
+      start_time,
+      end_time,
+      max_helpers,
+      visible,
+      open,
+      work_task_signups ( user_id, helpers )
+    `)
+    .eq("visible", true)
+    .order("start_time", { ascending: true });
+
+  if (tasksError) {
+    console.error(tasksError);
+    return;
+  }
+
+  allTasks = tasks;
+
+  // aktuelle Ansicht erneut rendern
   if (currentDay && currentTitle) {
     renderTasksForTitle(currentDay, currentTitle);
   }
@@ -770,6 +792,7 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
 
 
 
