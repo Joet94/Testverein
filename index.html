@@ -63,7 +63,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.32</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.33</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -314,18 +314,27 @@
   //--------------------------------------------------------------------
   // Gruppierung der Arbeitsdienste nach den Aufgaben
   //--------------------------------------------------------------------
-  function groupTasksByTitle(tasks) {
-    return tasks.reduce((groups, task) => {
-      const title = task.title;
+//  function groupTasksByTitle(tasks) {
+//    return tasks.reduce((groups, task) => {
+//      const title = task.title;
 
-      if (!groups[title]) {
-        groups[title] = [];
-      }
+//      if (!groups[title]) {
+//        groups[title] = [];
+//      }
 
-      groups[title].push(task);
-      return groups;
-    }, {});
-  }
+//      groups[title].push(task);
+//      return groups;
+//    }, {});
+//  }
+
+function groupTasksByTitle(tasks) {
+  return tasks.reduce((acc, task) => {
+    acc[task.title] = acc[task.title] || [];
+    acc[task.title].push(task);
+    return acc;
+  }, {});
+}
+
   
 //-----------------------------------------------------------------------
 
@@ -372,7 +381,6 @@ function renderTasksForDay(day) {
   const tasksDiv = document.getElementById("tasks");
   tasksDiv.innerHTML = "";
 
-  // 1. Aufgaben für den Tag filtern
   const tasksForDay = allTasks.filter(t =>
     t.start_time.startsWith(day)
   );
@@ -382,90 +390,115 @@ function renderTasksForDay(day) {
     return;
   }
 
-  // 2. Nach Titel gruppieren
   const tasksByTitle = groupTasksByTitle(tasksForDay);
 
-  // 3. Pro Titel einen Abschnitt erzeugen
-  Object.entries(tasksByTitle).forEach(([title, tasks]) => {
-    const section = document.createElement("div");
-    section.className = "task-group";
+  const titleFilter = document.createElement("div");
+  titleFilter.className = "title-filter";
 
-    section.innerHTML = `<h4>${title}</h4>`;
+  Object.keys(tasksByTitle).forEach(title => {
+    const btn = document.createElement("button");
+    btn.textContent = title;
 
-    tasks.forEach(task => {
-      const used = task.work_task_signups.reduce(
-        (sum, s) => sum + 1 + (s.helpers || 0),
-        0
-      );
+    btn.onclick = () => {
+      document
+        .querySelectorAll(".title-filter button")
+        .forEach(b => b.classList.remove("active"));
 
-      const free = task.max_helpers - used;
+      btn.classList.add("active");
+      renderTasksForTitle(day, title);
+    };
 
-      const alreadySignedUp = task.work_task_signups.some(
-        s => s.user_id === currentUserId
-      );
+    titleFilter.appendChild(btn);
+  });
 
-      const helpersList = task.work_task_signups
-        .map(s => {
-          const name = profileMap[s.user_id] || "Mitglied";
-          const extra = s.helpers > 0 ? ` (+${s.helpers})` : "";
-          return `<li>${name}${extra}</li>`;
-        })
-        .join("");
+  tasksDiv.appendChild(titleFilter);
+}
 
-      section.innerHTML += `
-        <div class="task">
-          <p>
-            <strong>
-              ${new Date(task.start_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
-              –
-              ${new Date(task.end_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
-            </strong>
-          </p>
+//-----------------------------------------------------------------------
+//  Tasks mit gleichem Titel anzeigen
+//-----------------------------------------------------------------------
 
-          <p>Belegte Plätze: ${used} / ${task.max_helpers}</p>
+function renderTasksForTitle(day, title) {
+  const tasksDiv = document.getElementById("tasks");
 
-          ${
-            helpersList
-              ? `<ul>${helpersList}</ul>`
-              : `<p><em>Noch keine Anmeldungen</em></p>`
-          }
+  // alles außer Title-Filter löschen
+  tasksDiv.querySelectorAll(".task-group-content").forEach(e => e.remove());
 
-          ${
-            !task.open
-              ? `<strong>Geschlossen</strong>`
-              : alreadySignedUp
-                ? `
-                  <button
-                    class="danger"
-                    onclick="withdraw('${task.id}')"
-                  >
-                    Austragen
-                  </button>
-                `
-                : free > 0
+  const tasksForTitle = allTasks.filter(
+    t =>
+      t.start_time.startsWith(day) &&
+      t.title === title
+  );
+
+  const content = document.createElement("div");
+  content.className = "task-group-content";
+
+  tasksForTitle.forEach(task => {
+    const used = task.work_task_signups.reduce(
+      (sum, s) => sum + 1 + (s.helpers || 0),
+      0
+    );
+
+    const free = task.max_helpers - used;
+
+    const alreadySignedUp = task.work_task_signups.some(
+      s => s.user_id === currentUserId
+    );
+
+    const helpersList = task.work_task_signups
+      .map(s => {
+        const name = profileMap[s.user_id] || "Mitglied";
+        const extra = s.helpers > 0 ? ` (+${s.helpers})` : "";
+        return `<li>${name}${extra}</li>`;
+      })
+      .join("");
+
+    content.innerHTML += `
+      <div class="task">
+        <p>
+          <strong>
+            ${new Date(task.start_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+            –
+            ${new Date(task.end_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+          </strong>
+        </p>
+
+        <p>Belegte Plätze: ${used} / ${task.max_helpers}</p>
+
+        ${
+          helpersList
+            ? `<ul>${helpersList}</ul>`
+            : `<p><em>Noch keine Anmeldungen</em></p>`
+        }
+
+        ${
+          !task.open
+            ? `<strong>Geschlossen</strong>`
+            : alreadySignedUp
+              ? `<button class="danger" onclick="withdraw('${task.id}')">Austragen</button>`
+              : free > 0
                 ? `
                   <label>
                     Zusätzliche Helfer:
-                      <input
-                        type="number"
-                        min="0"
-                        max="${free - 1}"
-                        value="0"
-                        id="helpers-${task.id}"
-                      >
-                    </label>
-                    <button onclick="signup('${task.id}', ${free})">
-                      Eintragen
-                    </button>
-                  `
-                  : `<strong>Ausgebucht</strong>`
-          }
-        </div>
-      `;
-    });
-
-    tasksDiv.appendChild(section);
+                    <input
+                      type="number"
+                      min="0"
+                      max="${free - 1}"
+                      value="0"
+                      id="helpers-${task.id}"
+                    >
+                  </label>
+                  <button onclick="signup('${task.id}', ${free})">
+                    Eintragen
+                  </button>
+                `
+                : `<strong>Ausgebucht</strong>`
+        }
+      </div>
+    `;
   });
+
+  tasksDiv.appendChild(content);
 }
   
 //-----------------------------------------------------------------------
@@ -550,6 +583,7 @@ window.withdraw = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
