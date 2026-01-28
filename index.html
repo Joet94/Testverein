@@ -93,7 +93,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.36</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.37</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -628,10 +628,46 @@ window.withdraw = async function (taskId) {
   loadTasks(); // UI aktualisieren
 };
 
-  
+//-----------------------------------------------------------------
+// Helferanzahl für bestehenden Eintrag aktualisieren
+//-----------------------------------------------------------------
+window.updateHelpers = async function (taskId) {
+
+  const input = document.getElementById(`edit-helpers-${taskId}`);
+  if (!input) return;
+
+  const newHelpers = parseInt(input.value || 0);
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    alert("Bitte zuerst anmelden.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("work_task_signups")
+    .update({ helpers: newHelpers })
+    .eq("task_id", taskId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    alert(error.message);
+    console.error(error);
+    return;
+  }
+
+  // neu laden, damit freie Plätze + Liste korrekt sind
+  loadTasks();
+};
+
 </script>
 </body>
 </html>
+
 
 
 
