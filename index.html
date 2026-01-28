@@ -23,13 +23,6 @@
       margin-top: 20px;
     }
 
-    .task {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-
     /* 🔹 Tagesfilter */
     #day-filter {
       margin: 15px 0;
@@ -88,12 +81,54 @@
       border-color: #198754;
       font-weight: bold;
     }
+
+    /* Kompakter Arbeitsdienst-Rahmen */
+    .task {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+
+    /* Aktionen (Buttons + Input) nebeneinander */
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+
+    /* Helfer-Input kleiner */
+    .task input[type="number"] {
+      width: 80px;
+      padding: 4px;
+    }
+
+    /* Buttons kompakter */
+    .task button {
+      padding: 5px 10px;
+      font-size: 14px;
+      width: auto;
+    }
+
+    /* Gefahren-Button (Austragen) */
+    .task button.danger {
+      background: #dc3545;
+      color: white;
+      border: none;
+    }
+
+    .task button.danger:hover {
+      background: #bb2d3b;
+    }
+    
     </style>
 </head>
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.38</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.39</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -506,24 +541,26 @@ function renderTasksForTitle(day, title) {
             ? `<strong>Geschlossen</strong>`
             : alreadySignedUp
               ? `
-                <label>
-                  Zusätzliche Helfer:
-                  <input
-                    type="number"
-                    min="0"
-                    max="${free + (task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0)}"
-                    value="${task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0}"
-                    id="edit-helpers-${task.id}"
-                  >
-                </label>
+                <div class="task-actions">
+                  <label>
+                    Helfer:
+                    <input
+                      type="number"
+                      id="edit-helpers-${task.id}"
+                      min="0"
+                      max="${free + (task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0)}"
+                      value="${task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0}"
+                    >
+                  </label>
 
-                <button onclick="updateHelpers('${task.id}', ${task.max_helpers})">
-                  Helfer aktualisieren
-                </button>
+                  <button onclick="updateHelpers('${task.id}', ${task.max_helpers})">
+                    Aktualisieren
+                  </button>
 
-                <button class="danger" onclick="withdraw('${task.id}')">
-                  Austragen
-                </button>
+                  <button class="danger" onclick="withdraw('${task.id}')">
+                    Austragen
+                  </button>
+                </div>
               `
               : free > 0
                 ? `
@@ -690,3 +727,4 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
