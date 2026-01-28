@@ -85,7 +85,7 @@
     /* Kompakter Arbeitsdienst-Rahmen */
     .task {
       border: 1px solid #ddd;
-      padding: 8px 6px;
+      padding: 8px 10px;
       margin-bottom: 6px;
       border-radius: 6px;
       background: #fafafa;
@@ -128,7 +128,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.40</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.41</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -166,6 +166,8 @@
   let allTasks = [];
   let profileMap = {};
   let currentUserId = null;
+  let currentDay = null;
+  let currentTitle = null;
   
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
   const supabaseUrl = 'https://hteeyyfsaotcavvtvizt.supabase.co'
@@ -443,6 +445,7 @@ function renderDayButtons(tasks) {
 //-----------------------------------------------------------------------
 
 function renderTasksForDay(day) {
+  currentDay = day;
   const tasksDiv = document.getElementById("tasks");
   tasksDiv.innerHTML = "";
 
@@ -484,6 +487,7 @@ function renderTasksForDay(day) {
 //-----------------------------------------------------------------------
 
 function renderTasksForTitle(day, title) {
+  currentTitle = title;
   const tasksDiv = document.getElementById("tasks");
 
   // alles außer Title-Filter löschen
@@ -662,7 +666,11 @@ window.withdraw = async function (taskId) {
     return;
   }
 
-  loadTasks(); // UI aktualisieren
+  //loadTasks(); // UI aktualisieren
+  // UI direkt aktualisieren
+  if (currentDay && currentTitle) {
+    renderTasksForTitle(currentDay, currentTitle);
+  }
 };
 
 //-----------------------------------------------------------------
@@ -720,12 +728,17 @@ window.updateHelpers = async function (taskId, maxHelpers) {
     return;
   }
 
-  loadTasks();
+  //loadTasks();
+  // UI direkt aktualisieren
+  if (currentDay && currentTitle) {
+    renderTasksForTitle(currentDay, currentTitle);
+  }
 };
 
 
 </script>
 </body>
 </html>
+
 
 
