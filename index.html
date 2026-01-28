@@ -93,7 +93,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.37</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.38</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -517,7 +517,7 @@ function renderTasksForTitle(day, title) {
                   >
                 </label>
 
-                <button onclick="updateHelpers('${task.id}')">
+                <button onclick="updateHelpers('${task.id}', ${task.max_helpers})">
                   Helfer aktualisieren
                 </button>
 
@@ -629,14 +629,37 @@ window.withdraw = async function (taskId) {
 };
 
 //-----------------------------------------------------------------
-// Helferanzahl für bestehenden Eintrag aktualisieren
+// Helferanzahl für bestehenden Eintrag aktualisieren (mit Prüfung)
 //-----------------------------------------------------------------
-window.updateHelpers = async function (taskId) {
+window.updateHelpers = async function (taskId, maxHelpers) {
 
   const input = document.getElementById(`edit-helpers-${taskId}`);
   if (!input) return;
 
   const newHelpers = parseInt(input.value || 0);
+
+  const task = allTasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const signup = task.work_task_signups.find(
+    s => s.user_id === currentUserId
+  );
+
+  const oldHelpers = signup?.helpers || 0;
+
+  // aktuell belegte Plätze OHNE eigene Helfer
+  const usedWithoutMe = task.work_task_signups.reduce(
+    (sum, s) => sum + 1 + (s.helpers || 0),
+    0
+  ) - (1 + oldHelpers);
+
+  const newTotalUsed = usedWithoutMe + 1 + newHelpers;
+
+  if (newTotalUsed > maxHelpers) {
+    alert("Nicht genügend freie Plätze für diese Anzahl an Helfern.");
+    input.value = oldHelpers; // zurücksetzen
+    return;
+  }
 
   const {
     data: { user },
@@ -660,37 +683,10 @@ window.updateHelpers = async function (taskId) {
     return;
   }
 
-  // neu laden, damit freie Plätze + Liste korrekt sind
   loadTasks();
 };
+
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
