@@ -58,12 +58,42 @@
       border-color: #2c7be5;
       font-weight: bold;
     }
-  </style>
+
+    /* 🔹 Arbeitstitel-Filter */
+    .title-filter {
+      margin: 15px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .title-filter button {
+      width: auto;
+      padding: 6px 10px;
+      border: 1px solid #bbb;
+      background: #f4f4f4;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .title-filter button:hover {
+      background: #e6e6e6;
+    }
+
+    /* 🔹 aktiver Arbeitstitel */
+    .title-filter button.active {
+      background-color: #198754;   /* grün, unterscheidet sich vom Tag */
+      color: white;
+      border-color: #198754;
+      font-weight: bold;
+    }
+    </style>
 </head>
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.33</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.34</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -583,6 +613,7 @@ window.withdraw = async function (taskId) {
 </script>
 </body>
 </html>
+
 
 
 
