@@ -551,6 +551,9 @@ function renderTasksForTitle(day, title) {
       }
     } else if (alreadySignedUp && task.open){
       //Nur wenn der Arbeitsdienst auch offen ist
+     const ownHelpers =
+      task.work_task_signups.find(s => s.user_id === currentUserId)?.helpers || 0;
+      
       actionHtml = `
         <div class="task-actions">
           <label>
@@ -803,3 +806,4 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
