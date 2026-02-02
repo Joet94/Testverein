@@ -130,7 +130,7 @@
 <body>
 
 
-<h1>Arbeitsdienste Vereinsverwaltung - 0.51</h1>
+<h1>Arbeitsdienste Vereinsverwaltung - 0.52</h1>
 
 <div id="auth">
   <h2>Login</h2>
@@ -144,6 +144,12 @@
 <div id="userArea" style="display:none;">
   <h2>Willkommen, <span id="userEmail"></span></h2>
   <button id="logoutBtn">Logout</button>
+
+  <h3>Anzeigename</h3>
+  <input type="text" id="displayNameInput" placeholder="Anzeigename">
+  <button id="saveDisplayNameBtn">Speichern</button>
+  <div id="displayNameMessage"></div>
+
 
   <h3>Arbeitsdienst eintragen</h3>
   <input type="date" id="workDate">
@@ -177,11 +183,6 @@
   const supabase = createClient(supabaseUrl, supabaseKey)
 
   console.log("Supabase Client geladen:", supabase);
-  
-  // Supabase initialisieren
-  //const supabaseUrl = "https://hteeyyfsaotcavvtvizt.supabase.co"; // <--- DEIN URL
-  //const supabaseAnonKey = "sb_publishable_pm6p0UM8_GARF3TIY51Heg_Sk3tacHJ";         // <--- DEIN ANON KEY
-  //const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
   const authDiv = document.getElementById("auth");
   const userArea = document.getElementById("userArea");
@@ -266,9 +267,58 @@
     authDiv.style.display = "none";
     userArea.style.display = "block";
     userEmailSpan.textContent = user.email;
+    loadDisplayName();
     loadMyHours();
     loadTasks();
   }
+
+  async function loadDisplayName() {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", currentUserId)
+      .single();
+
+    if (data?.display_name) {
+      document.getElementById("displayNameInput").value = data.display_name;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Anzeigename speichern
+  // ---------------------------------------------------------------------
+  document
+    .getElementById("saveDisplayNameBtn")
+    .addEventListener("click", async () => {
+
+      const name = document
+        .getElementById("displayNameInput")
+        .value
+        .trim();
+
+      if (!name) {
+        alert("Bitte einen Anzeigenamen eingeben");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: name })
+        .eq("id", currentUserId);
+
+      const msg = document.getElementById("displayNameMessage");
+
+      if (error) {
+        msg.textContent = "Fehler: " + error.message;
+        msg.style.color = "red";
+      } else {
+        msg.textContent = "Anzeigename gespeichert ✔";
+        msg.style.color = "green";
+
+        loadTasks(); // Namen überall aktualisieren
+      }
+  });
+
   
   //---------------------------------------------------------------------------
   //Arbeitsdienst eintragen (Stunden speichern)
@@ -832,6 +882,7 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
 
 
 
