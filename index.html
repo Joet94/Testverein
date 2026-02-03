@@ -284,9 +284,9 @@
     }
   }
 
-  // ---------------------------------------------------------------------
+  //---------------------------------------------------------------------
   // Anzeigename speichern
-  // ---------------------------------------------------------------------
+  //---------------------------------------------------------------------
   document
     .getElementById("saveDisplayNameBtn")
     .addEventListener("click", async () => {
@@ -321,7 +321,7 @@
 
   
   //---------------------------------------------------------------------------
-  //Arbeitsdienst eintragen (Stunden speichern)
+  // Arbeitsdienst eintragen (Stunden speichern)
   //---------------------------------------------------------------------------
   document.getElementById("saveWorkBtn").addEventListener("click", async () => {
   const date = document.getElementById("workDate").value;
@@ -456,22 +456,10 @@
     renderDayButtons(tasks);
   }
   
-  //--------------------------------------------------------------------
-  // Gruppierung der Arbeitsdienste nach den Aufgaben
-  //--------------------------------------------------------------------
-//  function groupTasksByTitle(tasks) {
-//    return tasks.reduce((groups, task) => {
-//      const title = task.title;
-
-//      if (!groups[title]) {
-//        groups[title] = [];
-//      }
-
-//      groups[title].push(task);
-//      return groups;
-//    }, {});
-//  }
-
+//--------------------------------------------------------------------
+// Gruppierung der Arbeitsdienste nach den Aufgaben
+//--------------------------------------------------------------------
+  
 function groupTasksByTitle(tasks) {
   return tasks.reduce((acc, task) => {
     acc[task.title] = acc[task.title] || [];
@@ -479,7 +467,6 @@ function groupTasksByTitle(tasks) {
     return acc;
   }, {});
 }
-
   
 //-----------------------------------------------------------------------
 
@@ -882,6 +869,7 @@ window.updateHelpers = async function (taskId, maxHelpers) {
 </script>
 </body>
 </html>
+
 
 
 
